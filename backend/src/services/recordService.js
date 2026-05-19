@@ -1,44 +1,56 @@
-const { Evaluation, Plan, User, EvaluationDimension } = require('../models');
-const { Op } = require('sequelize');
+const { db } = require('./jsonDbService');
 
-const getRecords = async (query) => {
-  const { teacherId, subject, startDate, endDate, status, page = 1, pageSize = 10 } = query;
-  const where = {};
-  const planWhere = {};
-
-  if (teacherId) planWhere.teacherId = teacherId;
-  if (subject) planWhere.subject = subject;
-  if (startDate) planWhere.scheduledTime = { [Op.gte]: new Date(startDate) };
-  if (endDate) {
-    planWhere.scheduledTime = {
-      ...(planWhere.scheduledTime || {}),
-      [Op.lte]: new Date(endDate + ' 23:59:59'),
-    };
+const getRecords = async (params = {}) => {
+  let evaluations = db.findAll('evaluations');
+  
+  // 过滤条件
+  if (params.status) {
+    evaluations = evaluations.filter(e => e.status === params.status);
   }
-  if (status) where.status = status;
+  if (params.evaluatorId) {
+    evaluations = evaluations.filter(e => e.evaluatorId === parseInt(params.evaluatorId));
+  }
+  if (params.planId) {
+    evaluations = evaluations.filter(e => e.planId === parseInt(params.planId));
+  }
 
-  const { rows, count } = await Evaluation.findAndCountAll({
-    where,
-    include: [
-      {
-        model: Plan,
-        where: Object.keys(planWhere).length > 0 ? planWhere : undefined,
-        include: [
-          { model: User, as: 'teacher', attributes: ['id', 'realName', 'department'] },
-        ],
-      },
-      { model: User, as: 'evaluator', attributes: ['id', 'realName'] },
-      { model: EvaluationDimension, as: 'dimensions' },
-    ],
-    order: [['submittedAt', 'DESC']],
-    limit: parseInt(pageSize),
-    offset: (page - 1) * pageSize,
+  // 添加关联信息
+  const records = evaluations.map(e => {
+    const plan = db.findById('plans', e.planId);
+    const evaluator = db.findById('users', e.evaluatorId);
+    const dimensions = db.findAll('evaluationDimensions', { evaluationId: e.id });
+    
+    return {
+      id: e.id,
+      planId: e.planId,
+      overallScore: e.overallScore,
+      overallComment: e.overallComment,
+      status: e.status,
+      submittedAt: e.submittedAt,
+      archivedAt: e.archivedAt,
+      plan: plan ? {
+        id: plan.id,
+        title: plan.title,
+        subject: plan.subject,
+        grade: plan.grade,
+        teacherName: plan.teacherName,
+        classroom: plan.classroom,
+        observeDate: plan.observeDate,
+        period: plan.period,
+      } : null,
+      evaluator: evaluator ? {
+        id: evaluator.id,
+        realName: evaluator.realName,
+      } : null,
+      dimensions: dimensions.map(d => ({
+        dimensionName: d.dimensionName,
+        score: d.score,
+        comment: d.comment,
+      })),
+    };
   });
 
-  return {
-    code: 200,
-    data: { list: rows, pagination: { page: parseInt(page), pageSize: parseInt(pageSize), total: count } },
-  };
+  return { code: 200, data: records };
 };
 
 module.exports = { getRecords };

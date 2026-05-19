@@ -1,83 +1,79 @@
-const { Evaluation, Plan, User, EvaluationDimension } = require('../models');
-const { Op, fn, col, literal } = require('sequelize');
+const { db } = require('./jsonDbService');
 
-const getTrend = async (query) => {
-  const { teacherId, startDate, endDate } = query;
-  const where = { status: 'submitted' };
-  const planWhere = {};
-
-  if (teacherId) planWhere.teacherId = teacherId;
-  if (startDate) where.submittedAt = { [Op.gte]: new Date(startDate) };
-  if (endDate) {
-    where.submittedAt = {
-      ...(where.submittedAt || {}),
-      [Op.lte]: new Date(endDate + ' 23:59:59'),
-    };
-  }
-
-  const evaluations = await Evaluation.findAll({
-    where,
-    include: [{ model: Plan, where: Object.keys(planWhere).length > 0 ? planWhere : undefined }],
-  });
-
-  const trendMap = {};
-  evaluations.forEach((e) => {
-    if (e.submittedAt && e.overallScore) {
-      const date = e.submittedAt.toISOString().split('T')[0];
-      if (!trendMap[date]) trendMap[date] = { total: 0, count: 0 };
-      trendMap[date].total += parseFloat(e.overallScore);
-      trendMap[date].count += 1;
+const getTrend = async (params = {}) => {
+  const evaluations = db.findAll('evaluations');
+  
+  // 按日期分组计算平均分
+  const dateScores = {};
+  evaluations.forEach(e => {
+    if (e.submittedAt) {
+      const date = e.submittedAt.split('T')[0];
+      if (!dateScores[date]) {
+        dateScores[date] = [];
+      }
+      dateScores[date].push(e.overallScore);
     }
   });
 
-  const dates = Object.keys(trendMap).sort();
-  const scores = dates.map((d) => +(trendMap[d].total / trendMap[d].count).toFixed(1));
+  const dates = Object.keys(dateScores).sort();
+  const scores = dates.map(d => {
+    const arr = dateScores[d];
+    return parseFloat((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1));
+  });
 
   return { code: 200, data: { dates, scores } };
 };
 
-const getComparison = async (query) => {
-  const { subject, classInfo } = query;
-  const planWhere = {};
-  if (subject) planWhere.subject = subject;
-  if (classInfo) planWhere.classInfo = classInfo;
-
-  const plans = await Plan.findAll({ where: planWhere });
-  const planIds = plans.map((p) => p.id);
-
-  const evaluations = await Evaluation.findAll({
-    where: { planId: { [Op.in]: planIds }, status: 'submitted' },
-    include: [{ model: Plan }],
-  });
-
+const getComparison = async (params = {}) => {
+  const evaluations = db.findAll('evaluations');
+  
+  // 按学科分组
   const subjectScores = {};
-  evaluations.forEach((e) => {
-    const sub = e.Plan?.subject || '未知';
-    if (!subjectScores[sub]) subjectScores[sub] = { total: 0, count: 0 };
-    subjectScores[sub].total += parseFloat(e.overallScore || 0);
-    subjectScores[sub].count += 1;
+  evaluations.forEach(e => {
+    const plan = db.findById('plans', e.planId);
+    if (plan) {
+      const subject = plan.subject;
+      if (!subjectScores[subject]) {
+        subjectScores[subject] = [];
+      }
+      subjectScores[subject].push(e.overallScore);
+    }
   });
 
-  const labels = Object.keys(subjectScores);
-  const data = labels.map((l) => +(subjectScores[l].total / subjectScores[l].count).toFixed(1));
+  const subjects = Object.keys(subjectScores);
+  const scores = subjects.map(s => {
+    const arr = subjectScores[s];
+    return parseFloat((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1));
+  });
 
-  return { code: 200, data: { labels, data } };
+  return { code: 200, data: { subjects, scores } };
 };
 
 const getDistribution = async () => {
-  const dimensions = await EvaluationDimension.findAll();
+  const evaluations = db.findAll('evaluations');
+  
+  const distribution = {
+    excellent: 0,  // 4.5-5
+    good: 0,       // 3.5-4.5
+    fair: 0,       // 2.5-3.5
+    poor: 0,       // < 2.5
+  };
 
-  const distMap = {};
-  dimensions.forEach((d) => {
-    const name = d.dimensionName;
-    if (!distMap[name]) distMap[name] = 0;
-    distMap[name] += 1;
+  evaluations.forEach(e => {
+    const score = e.overallScore;
+    if (score >= 4.5) distribution.excellent++;
+    else if (score >= 3.5) distribution.good++;
+    else if (score >= 2.5) distribution.fair++;
+    else distribution.poor++;
   });
 
-  const dimensionNames = Object.keys(distMap);
-  const counts = dimensionNames.map((d) => distMap[d]);
-
-  return { code: 200, data: { dimensions: dimensionNames, counts } };
+  return {
+    code: 200,
+    data: {
+      labels: ['优秀(4.5-5)', '良好(3.5-4.5)', '一般(2.5-3.5)', '较差(<2.5)'],
+      values: [distribution.excellent, distribution.good, distribution.fair, distribution.poor],
+    },
+  };
 };
 
 module.exports = { getTrend, getComparison, getDistribution };
