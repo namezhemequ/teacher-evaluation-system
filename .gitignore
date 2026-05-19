@@ -1,0 +1,32 @@
+# 依赖
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# 数据库
+*.sqlite
+database.sqlite
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 构建产物
+dist/
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# 日志
+*.log
+npm-debug.log*
+
+# 临时文件
+*.tmp
+*.temp
+
+# CodeBuddy
+.codebuddy/
