@@ -68,7 +68,7 @@
             <el-table-column prop="Plan.title" label="计划标题" min-width="180">
               <template #default="{ row }">
                 <div class="plan-cell">
-                  <span class="plan-title">{{ row.Plan?.title || '未知计划' }}</span>
+                  <span class="plan-title">{{ row.plan?.title || '未知计划' }}</span>
                 </div>
               </template>
             </el-table-column>

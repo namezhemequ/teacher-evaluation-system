@@ -70,7 +70,7 @@
           <el-table-column type="index" label="#" width="60" align="center" />
           <el-table-column prop="Plan.title" label="计划标题" min-width="180">
             <template #default="{ row }">
-              <span class="eval-title">{{ row.Plan?.title || '未知计划' }}</span>
+              <span class="eval-title">{{ row.plan?.title || '未知计划' }}</span>
             </template>
           </el-table-column>
           <el-table-column prop="overallScore" label="评分" width="120" align="center">

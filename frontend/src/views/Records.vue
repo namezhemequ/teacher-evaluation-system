@@ -62,8 +62,8 @@
         <el-table-column prop="Plan.title" label="计划标题" min-width="200">
           <template #default="{ row }">
             <div class="title-cell">
-              <span class="record-title">{{ row.Plan?.title || '未知计划' }}</span>
-              <span class="record-subject" v-if="row.Plan?.subject">{{ row.Plan.subject }}</span>
+              <span class="record-title">{{ row.plan?.title || '未知计划' }}</span>
+              <span class="record-subject" v-if="row.plan?.subject">{{ row.plan.subject }}</span>
             </div>
           </template>
         </el-table-column>
@@ -71,9 +71,9 @@
           <template #default="{ row }">
             <div class="teacher-cell">
               <el-avatar :size="32" class="teacher-avatar">
-                {{ (row.Plan?.teacherName || 'T').charAt(0) }}
+                {{ (row.plan?.teacherName || 'T').charAt(0) }}
               </el-avatar>
-              <span>{{ row.Plan?.teacherName || '-' }}</span>
+              <span>{{ row.plan?.teacherName || '-' }}</span>
             </div>
           </template>
         </el-table-column>
