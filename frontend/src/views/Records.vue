@@ -59,7 +59,7 @@
         style="width: 100%"
       >
         <el-table-column type="index" label="#" width="60" align="center" />
-        <el-table-column prop="Plan.title" label="计划标题" min-width="200">
+        <el-table-column label="计划标题" min-width="200">
           <template #default="{ row }">
             <div class="title-cell">
               <span class="record-title">{{ row.plan?.title || '未知计划' }}</span>
@@ -67,7 +67,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="Plan.teacherName" label="被听课教师" width="120" align="center">
+        <el-table-column label="被听课教师" width="120" align="center">
           <template #default="{ row }">
             <div class="teacher-cell">
               <el-avatar :size="32" class="teacher-avatar">

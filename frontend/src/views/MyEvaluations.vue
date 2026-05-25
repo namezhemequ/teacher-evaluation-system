@@ -68,7 +68,7 @@
       <div class="table-card" v-if="submittedEvaluations.length > 0">
         <el-table :data="submittedEvaluations" stripe v-loading="loading">
           <el-table-column type="index" label="#" width="60" align="center" />
-          <el-table-column prop="Plan.title" label="计划标题" min-width="180">
+          <el-table-column label="计划标题" min-width="180">
             <template #default="{ row }">
               <span class="eval-title">{{ row.plan?.title || '未知计划' }}</span>
             </template>
