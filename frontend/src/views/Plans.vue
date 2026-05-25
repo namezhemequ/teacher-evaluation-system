@@ -258,7 +258,7 @@ const loadPlans = async () => {
     
     const res = await api.plans.list(params);
     if (res.code === 200) {
-      plans.value = res.data.list;
+      plans.value = res.data?.list || res.data || [];
       pagination.value.total = res.data.pagination.total;
     }
   } catch (e) {

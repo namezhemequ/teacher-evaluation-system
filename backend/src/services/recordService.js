@@ -50,7 +50,7 @@ const getRecords = async (params = {}) => {
     };
   });
 
-  return { code: 200, data: records };
+  return { code: 200, data: { list: records, total: records.length } };
 };
 
 module.exports = { getRecords };

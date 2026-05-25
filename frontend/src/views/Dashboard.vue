@@ -289,15 +289,16 @@ const loadData = async () => {
       api.records.list({ pageSize: 5 }),
     ]);
     
-    if (plansRes.code === 200) {
-      const plans = plansRes.data.list;
+    if (plansRes?.code === 200) {
+      const plans = plansRes.data?.list || plansRes.data || [];
       stats.value.todayPlans = plans.filter(p => p.status === 'published').length;
       stats.value.pendingEvaluations = plans.filter(p => p.status === 'published').length;
     }
     
-    if (recordsRes.code === 200) {
-      recentEvaluations.value = recordsRes.data.list;
-      const completed = recordsRes.data.list.filter(r => r.status === 'submitted' || r.status === 'archived');
+    if (recordsRes?.code === 200) {
+      const records = recordsRes.data?.list || recordsRes.data || [];
+      recentEvaluations.value = records;
+      const completed = records.filter(r => r.status === 'submitted' || r.status === 'archived');
       stats.value.completedEvaluations = completed.length;
       if (completed.length > 0) {
         const total = completed.reduce((sum, r) => sum + parseFloat(r.overallScore || 0), 0);

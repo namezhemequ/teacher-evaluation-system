@@ -261,7 +261,7 @@ const loadRecords = async () => {
     
     const res = await api.records.list(params);
     if (res.code === 200) {
-      records.value = res.data.list;
+      records.value = res.data?.list || res.data || [];
       pagination.value.total = res.data.pagination.total;
     }
   } catch (e) {

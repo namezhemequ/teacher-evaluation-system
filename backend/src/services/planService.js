@@ -22,7 +22,7 @@ const getPlans = async (params = {}) => {
     };
   });
   
-  return { code: 200, data: plans };
+  return { code: 200, data: { list: plans, total: plans.length } };
 };
 
 const getPlanById = async (id) => {
