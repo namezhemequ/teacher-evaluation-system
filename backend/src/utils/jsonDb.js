@@ -3,15 +3,17 @@ const path = require('path');
 
 // JSON 文件数据库，适用于 Railway 等云环境
 class JsonDB {
-  constructor(filename = 'database.json') {
+  constructor(filename = 'database.json', version = 1) {
     this.filename = filename;
+    // 版本化文件名：database_v3.json
+    const nameParts = filename.split('.');
+    this.versionedName = `${nameParts[0]}_v${version}.${nameParts[1]}`;
     this.data = this.load();
   }
 
   getFilePath() {
-    // Railway 环境使用 /tmp，本地使用项目目录
     const dir = process.env.RAILWAY_ENVIRONMENT ? '/tmp' : path.join(__dirname, '../../');
-    return path.join(dir, this.filename);
+    return path.join(dir, this.versionedName);
   }
 
   load() {
@@ -105,4 +107,5 @@ class JsonDB {
   }
 }
 
-module.exports = new JsonDB();
+const version = parseInt(process.env.DATA_VERSION) || 3;
+module.exports = new JsonDB('database.json', version);

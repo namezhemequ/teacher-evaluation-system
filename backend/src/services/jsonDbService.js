@@ -1,30 +1,15 @@
 const db = require('../utils/jsonDb');
 const bcrypt = require('bcryptjs');
 
-const DATA_VERSION = 2; // 递增此值强制重置数据
-
 // 初始化默认数据
 const initDefaultData = async () => {
-  const currentVersion = db.findAll('_metadata')[0];
-  
-  // 版本不匹配时清空所有数据重新初始化
-  if (!currentVersion || currentVersion.version !== DATA_VERSION) {
-    console.log(`Data version changed (${currentVersion?.version || 0} -> ${DATA_VERSION}), reinitializing...`);
-    
-    // 清空所有表
-    ['roles', 'users', 'plans', 'evaluations', 'evaluationDimensions', '_metadata'].forEach(table => {
-      if (db.data[table]) db.data[table] = [];
-    });
-    db.data._metadata = [];
-    db.save();
-  } else {
-    // 版本匹配，不需要初始化
-    console.log('Data already initialized, skipping...');
+  // 如果已有数据，跳过（文件版本号已保证不冲突）
+  if (db.count('roles') > 0) {
+    console.log(`Data already initialized: ${db.count('plans')} plans, ${db.count('evaluations')} evaluations`);
     return;
   }
 
-  // 记录版本
-  db.create('_metadata', { version: DATA_VERSION });
+  console.log('Initializing demo data...');
 
   // 初始化角色
   db.bulkCreate('roles', [

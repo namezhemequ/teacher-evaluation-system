@@ -1,4 +1,7 @@
 require('dotenv').config();
+// 设置数据版本 - 修改此值将自动创建新的数据文件
+process.env.DATA_VERSION = process.env.DATA_VERSION || '3';
+
 const express = require('express');
 const cors = require('cors');
 const { initDefaultData } = require('./services/jsonDbService');
