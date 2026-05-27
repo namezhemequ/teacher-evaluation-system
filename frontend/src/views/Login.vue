@@ -1,37 +1,12 @@
 <template>
   <div class="login-page" ref="pageRef">
-    <!-- 背景层 -->
-    <div class="bg-layer" ref="bgLayerRef">
-      <!-- 渐变光晕 -->
-      <div class="bg-glow glow-1" ref="glow1Ref"></div>
-      <div class="bg-glow glow-2" ref="glow2Ref"></div>
-      <div class="bg-glow glow-3" ref="glow3Ref"></div>
+    <!-- 全屏 Canvas 背景层 -->
+    <canvas ref="canvasRef" class="bg-canvas"></canvas>
 
-      <!-- 几何网格 -->
-      <div class="geometric-grid" ref="gridRef">
-        <div class="grid-line" v-for="i in 8" :key="'h'+i" :style="{ top: (i * 12.5) + '%' }"></div>
-        <div class="grid-line vertical" v-for="i in 8" :key="'v'+i" :style="{ left: (i * 12.5) + '%' }"></div>
-      </div>
+    <!-- 卡片后脉冲光晕 -->
+    <div class="pulse-glow" ref="pulseGlowRef"></div>
 
-      <!-- 装饰学术图标 -->
-      <div class="corner-deco deco-tl" ref="decoTLRef">
-        <svg viewBox="0 0 60 60" fill="none"><path d="M30 8L8 19v22L30 52l22-11V19L30 8z" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><circle cx="20" cy="25" r="3" fill="currentColor" opacity="0.3"/><circle cx="40" cy="25" r="3" fill="currentColor" opacity="0.3"/><circle cx="30" cy="35" r="4" fill="currentColor" opacity="0.3"/><path d="M20 25h20" stroke="currentColor" stroke-width="1" opacity="0.2"/></svg>
-      </div>
-      <div class="corner-deco deco-tr" ref="decoTRRef">
-        <svg viewBox="0 0 48 64" fill="none"><rect x="8" y="16" width="32" height="40" rx="2" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><line x1="16" y1="24" x2="32" y2="24" stroke="currentColor" stroke-width="1" opacity="0.2"/><line x1="16" y1="32" x2="28" y2="32" stroke="currentColor" stroke-width="1" opacity="0.2"/><line x1="16" y1="40" x2="30" y2="40" stroke="currentColor" stroke-width="1" opacity="0.2"/><path d="M8 56l16-16H8V56z" fill="currentColor" opacity="0.15"/></svg>
-      </div>
-      <div class="corner-deco deco-bl" ref="decoBLRef">
-        <svg viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="20" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><circle cx="28" cy="28" r="8" stroke="currentColor" stroke-width="1" opacity="0.3"/><circle cx="28" cy="28" r="2" fill="currentColor" opacity="0.4"/><line x1="28" y1="8" x2="28" y2="20" stroke="currentColor" stroke-width="1" opacity="0.2"/><line x1="28" y1="36" x2="28" y2="48" stroke="currentColor" stroke-width="1" opacity="0.2"/><line x1="8" y1="28" x2="20" y2="28" stroke="currentColor" stroke-width="1" opacity="0.2"/><line x1="36" y1="28" x2="48" y2="28" stroke="currentColor" stroke-width="1" opacity="0.2"/></svg>
-      </div>
-      <div class="corner-deco deco-br" ref="decoBRRef">
-        <svg viewBox="0 0 56 48" fill="none"><path d="M8 40V8h40v32c0 4-4 8-8 8H16c-4 0-8-4-8-8z" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><path d="M20 16L32 28M32 16L20 28" stroke="currentColor" stroke-width="1" opacity="0.25"/><circle cx="28" cy="22" r="1.5" fill="currentColor" opacity="0.3"/></svg>
-      </div>
-    </div>
-
-    <!-- 粒子画布 -->
-    <canvas ref="canvasRef" class="particle-canvas"></canvas>
-
-    <!-- 登录卡片（不变） -->
+    <!-- 登录卡片 -->
     <div class="login-container">
       <div class="login-card" ref="cardRef">
         <div class="login-header" ref="headerRef">
@@ -47,7 +22,7 @@
           </h1>
           <p class="login-subtitle" ref="subtitleRef">Teacher Observation & Evaluation System</p>
         </div>
-        
+
         <el-form ref="formRef" :model="form" :rules="rules" class="login-form" @submit.prevent="handleLogin">
           <el-form-item prop="username" class="form-item">
             <label class="form-label"><el-icon><User /></el-icon><span>用户名</span></label>
@@ -63,7 +38,7 @@
             </el-button>
           </el-form-item>
         </el-form>
-        
+
         <div class="login-tips" ref="tipsRef">
           <div class="tips-header"><el-icon><InfoFilled /></el-icon><span>测试账号</span></div>
           <div class="tips-grid">
@@ -72,7 +47,7 @@
           </div>
         </div>
       </div>
-      <div class="login-footer"><p>© 2026 教师听课评课管理系统 v1.0</p></div>
+      <div class="login-footer"><p>&copy; 2026 教师听课评课管理系统 v1.0</p></div>
     </div>
   </div>
 </template>
@@ -85,133 +60,349 @@ import { ElMessage } from 'element-plus';
 import { User, Lock, InfoFilled } from '@element-plus/icons-vue';
 import gsap from 'gsap';
 
+// ── 基础 ──
 const router = useRouter();
 const userStore = useUserStore();
-const formRef = ref(), loading = ref(false);
-const pageRef = ref(null), bgLayerRef = ref(null), canvasRef = ref(null);
-const cardRef = ref(null), logoRef = ref(null), titleRef = ref(null), subtitleRef = ref(null), btnRef = ref(null), tipsRef = ref(null);
-const gridRef = ref(null), glow1Ref = ref(null), glow2Ref = ref(null), glow3Ref = ref(null);
-const decoTLRef = ref(null), decoTRRef = ref(null), decoBLRef = ref(null), decoBRRef = ref(null);
+const formRef = ref();
+const loading = ref(false);
+
+// ── Refs ──
+const pageRef = ref(null);
+const canvasRef = ref(null);
+const pulseGlowRef = ref(null);
+const cardRef = ref(null);
+const logoRef = ref(null);
+const titleRef = ref(null);
+const subtitleRef = ref(null);
+const btnRef = ref(null);
+const tipsRef = ref(null);
 const titleCharRefs = ref([]);
+
+// ── 表单 ──
 const titleChars = '教师听课评课管理系统'.split('');
 const form = ref({ username: '', password: '' });
 const rules = { username: [{ required: true, message: '请输入用户名', trigger: 'blur' }], password: [{ required: true, message: '请输入密码', trigger: 'blur' }] };
 
-let ctx = null, mouseX = 0, mouseY = 0, particleRAF = null, glowTween = null;
+// ── Canvas 全局状态 ──
+let w, h, ctx, ctxG;
+let mouseX = 0, mouseY = 0;
+let isExploding = true;
+let canvasRAF = null;
+let ctxGInstance = null;
+let glowTimeline = null;
 
-// ====== 粒子系统（Canvas + 鼠标斥力） ======
-const initParticles = () => {
+// ==================== 光带系统 ====================
+class Ribbon {
+  constructor(i) {
+    this.id = i;
+    this.phase = Math.random() * Math.PI * 2;
+    this.speed = 0.3 + Math.random() * 0.5;
+    this.amplitude = 80 + Math.random() * 180;
+    this.yOffset = (i + 0.5) * (h / 4.5);
+    this.waveCount = 2 + Math.floor(Math.random() * 2);
+    this.thickness = 1.5 + Math.random() * 2.5;
+    this.alpha = 0.25 + Math.random() * 0.35;
+    this.alphaExplosion = 0;
+  }
+  draw(time) {
+    ctxG.save();
+    ctxG.globalAlpha = isExploding ? this.alphaExplosion : this.alpha;
+    const segs = 120;
+    ctxG.beginPath();
+    for (let j = 0; j <= segs; j++) {
+      const t = j / segs;
+      const px = t * w;
+      let py = this.yOffset;
+      for (let k = 1; k <= this.waveCount; k++) {
+        py += Math.sin(t * Math.PI * 2 * k + this.phase + time * this.speed + k) * this.amplitude * 0.6 / k;
+      }
+      if (j === 0) ctxG.moveTo(px, py); else ctxG.lineTo(px, py);
+    }
+    const grad = ctxG.createLinearGradient(0, this.yOffset - 100, 0, this.yOffset + 100);
+    grad.addColorStop(0, 'rgba(64,158,255,0)');
+    grad.addColorStop(0.3, 'rgba(64,158,255,0.15)');
+    grad.addColorStop(0.5, 'rgba(0,240,255,0.6)');
+    grad.addColorStop(0.7, 'rgba(64,158,255,0.15)');
+    grad.addColorStop(1, 'rgba(64,158,255,0)');
+    ctxG.strokeStyle = grad;
+    ctxG.lineWidth = this.thickness;
+    ctxG.shadowColor = 'rgba(0,200,255,0.8)';
+    ctxG.shadowBlur = 12;
+    ctxG.stroke();
+    ctxG.shadowBlur = 0;
+    ctxG.restore();
+  }
+}
+
+// ==================== 粒子系统 ====================
+class Particle {
+  constructor(explode = false) {
+    this.reset(explode);
+  }
+  reset(explode) {
+    if (explode) {
+      const cx = w / 2, cy = h / 2;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 100 + Math.random() * 600;
+      this.x = cx + Math.cos(angle) * dist;
+      this.y = cy + Math.sin(angle) * dist;
+      this.vx = Math.cos(angle) * dist * 0.015;
+      this.vy = Math.sin(angle) * dist * 0.015;
+    } else {
+      this.x = Math.random() * w;
+      this.y = Math.random() * h;
+      this.vx = (Math.random() - 0.5) * 0.6;
+      this.vy = (Math.random() - 0.5) * 0.4 - 0.4;
+    }
+    this.r = 1.5 + Math.random() * 4;
+    this.alpha = 0.3 + Math.random() * 0.7;
+    this.color = ['rgba(64,158,255,', 'rgba(0,240,255,', 'rgba(129,180,255,', 'rgba(200,230,255,'][Math.floor(Math.random() * 4)];
+    this.trail = [];
+    this.maxTrail = 4 + Math.floor(Math.random() * 6);
+  }
+  update() {
+    this.trail.push({ x: this.x, y: this.y });
+    if (this.trail.length > this.maxTrail) this.trail.shift();
+    this.x += this.vx; this.y += this.vy;
+    if (this.x < -20) this.x = w + 20; if (this.x > w + 20) this.x = -20;
+    if (this.y < -20) this.y = h + 20; if (this.y > h + 20) { this.y = -20; this.x = Math.random() * w; }
+  }
+  draw(ctxG) {
+    // 拖尾
+    if (this.trail.length > 1) {
+      ctxG.beginPath();
+      ctxG.moveTo(this.trail[0].x, this.trail[0].y);
+      for (let i = 1; i < this.trail.length; i++) ctxG.lineTo(this.trail[i].x, this.trail[i].y);
+      ctxG.strokeStyle = this.color + (this.alpha * 0.3) + ')';
+      ctxG.lineWidth = this.r * 0.6;
+      ctxG.lineCap = 'round';
+      ctxG.stroke();
+    }
+    // 主体光晕
+    const glow = ctxG.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r * 3);
+    glow.addColorStop(0, this.color + this.alpha + ')');
+    glow.addColorStop(0.4, this.color + (this.alpha * 0.3) + ')');
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctxG.beginPath();
+    ctxG.arc(this.x, this.y, this.r * 3, 0, Math.PI * 2);
+    ctxG.fillStyle = glow;
+    ctxG.fill();
+    // 核心亮点
+    ctxG.beginPath();
+    ctxG.arc(this.x, this.y, this.r * 0.5, 0, Math.PI * 2);
+    ctxG.fillStyle = 'rgba(255,255,255,' + (this.alpha * 0.9) + ')';
+    ctxG.fill();
+  }
+}
+
+// ==================== 涟漪 ====================
+class Ripple {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    this.radius = 0;
+    this.maxRadius = 80 + Math.random() * 120;
+    this.alpha = 0.6;
+  }
+  update() {
+    this.radius += 2.5;
+    this.alpha -= 0.012;
+    return this.alpha > 0 && this.radius < this.maxRadius;
+  }
+  draw(ctxG) {
+    ctxG.beginPath();
+    ctxG.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctxG.strokeStyle = 'rgba(0,200,255,' + this.alpha + ')';
+    ctxG.lineWidth = 1.5;
+    ctxG.shadowColor = 'rgba(0,200,255,' + this.alpha + ')';
+    ctxG.shadowBlur = 8;
+    ctxG.stroke();
+    ctxG.shadowBlur = 0;
+  }
+}
+
+// ==================== 技术网格 + 扫描线 ====================
+const drawTechGrid = (time) => {
+  const perspectiveY = h * 0.55;
+  const step = 40;
+  const rows = 18, cols = 22;
+  ctxG.save();
+  ctxG.globalAlpha = 0.06;
+  ctxG.strokeStyle = '#409EFF';
+  ctxG.lineWidth = 0.6;
+  ctxG.beginPath();
+  for (let r = 0; r <= rows; r++) {
+    const py = perspectiveY + r * step;
+    const scale = (py - perspectiveY) / (h + 200 - perspectiveY);
+    const left = w / 2 - (w / 2) * scale;
+    const right = w / 2 + (w / 2) * scale;
+    ctxG.moveTo(left, py); ctxG.lineTo(right, py);
+  }
+  ctxG.stroke();
+
+  // 扫描线
+  const scanY = ((time * 0.8) % (h + 400)) - 200;
+  const scanScale = (scanY - perspectiveY) / (h + 200 - perspectiveY);
+  const scanLeft = w / 2 - (w / 2) * scanScale;
+  const scanRight = w / 2 + (w / 2) * scanScale;
+  if (scanY > perspectiveY - 100) {
+    const glow = ctxG.createLinearGradient(scanLeft, scanY, scanRight, scanY);
+    glow.addColorStop(0, 'rgba(0,200,255,0)');
+    glow.addColorStop(0.3, 'rgba(0,200,255,0.15)');
+    glow.addColorStop(0.5, 'rgba(0,240,255,0.3)');
+    glow.addColorStop(0.7, 'rgba(0,200,255,0.15)');
+    glow.addColorStop(1, 'rgba(0,200,255,0)');
+    ctxG.globalAlpha = 0.4;
+    ctxG.strokeStyle = glow;
+    ctxG.lineWidth = 2;
+    ctxG.shadowColor = 'rgba(0,200,255,0.6)';
+    ctxG.shadowBlur = 10;
+    ctxG.beginPath();
+    ctxG.moveTo(scanLeft, scanY); ctxG.lineTo(scanRight, scanY);
+    ctxG.stroke();
+    ctxG.shadowBlur = 0;
+  }
+  ctxG.restore();
+};
+
+// ==================== 渲染主循环 ====================
+let ribbons = [], particles = [], ripples = [];
+let startTime = 0, lastRippleTime = 0;
+
+const initCanvas = () => {
   const canvas = canvasRef.value;
-  if (!canvas) return;
-  const ctx2d = canvas.getContext('2d');
-  let w, h;
-  const particles = [];
-  const COUNT = 45;
-
-  const resize = () => { w = canvas.offsetWidth; h = canvas.offsetHeight; canvas.width = w * devicePixelRatio; canvas.height = h * devicePixelRatio; ctx2d.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0); };
+  ctxG = canvas.getContext('2d');
+  const resize = () => {
+    w = window.innerWidth; h = window.innerHeight;
+    canvas.width = w * window.devicePixelRatio;
+    canvas.height = h * window.devicePixelRatio;
+    ctxG.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+  };
   resize();
   window.addEventListener('resize', resize);
 
-  const colors = ['rgba(129,140,248,', 'rgba(59,75,255,', 'rgba(199,210,254,', 'rgba(99,102,241,', 'rgba(165,180,252,'];
-  for (let i = 0; i < COUNT; i++) {
-    particles.push({
-      x: Math.random() * w, y: Math.random() * h,
-      r: Math.random() * 3 + 0.8,
-      baseVx: (Math.random() - 0.5) * 0.25, baseVy: -(Math.random() * 0.5 + 0.15),
-      vx: 0, vy: 0,
-      opacity: Math.random() * 0.5 + 0.15,
-      color: colors[Math.floor(Math.random() * colors.length)],
-    });
-  }
+  // 光带
+  ribbons = Array.from({ length: 4 }, (_, i) => new Ribbon(i));
+  // 粒子
+  particles = Array.from({ length: 80 }, () => new Particle(true));
+  ripples = [];
+  startTime = performance.now();
 
-  const animate = () => {
-    ctx2d.clearRect(0, 0, w, h);
+  const render = (now) => {
+    const time = (now - startTime) / 1000;
+    const explodedTime = Math.min(time / 2, 1);
+
+    ctxG.clearRect(0, 0, w, h);
+
+    // 渐变底色
+    const bg = ctxG.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.8);
+    bg.addColorStop(0, '#0d1b33');
+    bg.addColorStop(0.5, '#0a1628');
+    bg.addColorStop(1, '#060e1c');
+    ctxG.fillStyle = bg;
+    ctxG.fillRect(0, 0, w, h);
+
+    // 技术网格 + 扫描线
+    drawTechGrid(time);
+
+    // 光带
+    ctxG.save();
+    if (isExploding) ctxG.globalAlpha = explodedTime;
+    ribbons.forEach(r => { r.alphaExplosion = explodedTime; r.draw(time); });
+    ctxG.restore();
+
+    // 粒子
     particles.forEach(p => {
-      const dx = mouseX - p.x, dy = mouseY - p.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const forceDist = 150;
-      let fx = 0, fy = 0;
-      if (dist < forceDist && dist > 0) {
-        const force = (1 - dist / forceDist) * 1.5;
-        fx = -(dx / dist) * force; fy = -(dy / dist) * force;
+      if (isExploding && time < 3) {
+        p.vx *= 0.98;
+        p.vy *= 0.98;
       }
-      p.vx = p.baseVx + fx; p.vy = p.baseVy + fy;
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < -20) p.x = w + 20; if (p.x > w + 20) p.x = -20;
-      if (p.y < -20) p.y = h + 20; if (p.y > h + 20) p.y = -20;
-
-      ctx2d.beginPath();
-      ctx2d.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx2d.fillStyle = p.color + p.opacity + ')';
-      ctx2d.fill();
+      p.update();
+      p.draw(ctxG);
     });
-    particleRAF = requestAnimationFrame(animate);
+    // 粒子爆炸后持续补充
+    if (time > 2.5 && isExploding) {
+      isExploding = false;
+      particles.forEach(p => { p.vx = (Math.random() - 0.5) * 0.5; p.vy = -(Math.random() * 0.6); });
+    }
+
+    // 涟漪
+    ripples = ripples.filter(r => r.update());
+    ripples.forEach(r => r.draw(ctxG));
+
+    // 鼠标位置指示器
+    const mxDist = 120;
+    const mxGlow = ctxG.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, mxDist);
+    mxGlow.addColorStop(0, 'rgba(0,200,255,0.05)');
+    mxGlow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctxG.fillStyle = mxGlow;
+    ctxG.beginPath();
+    ctxG.arc(mouseX, mouseY, mxDist, 0, Math.PI * 2);
+    ctxG.fill();
+
+    canvasRAF = requestAnimationFrame(render);
   };
-  animate();
+  canvasRAF = requestAnimationFrame(render);
 };
 
-// ====== 光晕呼吸动画 ======
-const animateGlowBreathing = () => {
-  glowTween = gsap.timeline({ repeat: -1, yoyo: true, repeatDelay: 0.3 });
-  glowTween.to(glow1Ref.value, { opacity: 0.6, scale: 1.15, duration: 4, ease: 'sine.inOut' }, 0);
-  glowTween.to(glow2Ref.value, { opacity: 0.5, scale: 1.1, x: 30, y: -20, duration: 5, ease: 'sine.inOut' }, 0.8);
-  glowTween.to(glow3Ref.value, { opacity: 0.4, scale: 1.2, x: -20, y: 30, duration: 6, ease: 'sine.inOut' }, 1.5);
+// ==================== 鼠标交互 ====================
+const handleMouseMove = (e) => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  // 涟漪频率控制
+  const now = performance.now();
+  if (now - lastRippleTime > 80) {
+    ripples.push(new Ripple(mouseX, mouseY));
+    lastRippleTime = now;
+    if (ripples.length > 15) ripples.shift();
+  }
+  // 卡片视差
+  const x = (e.clientX / window.innerWidth - 0.5) * 24;
+  const y = (e.clientY / window.innerHeight - 0.5) * 24;
+  if (cardRef.value) {
+    gsap.to(cardRef.value, { x: -x * 0.25, y: -y * 0.25, rotationX: -y * 0.3, rotationY: x * 0.3, duration: 1, ease: 'power2.out' });
+  }
+  if (logoRef.value) {
+    gsap.to(logoRef.value, { x: x * 0.5, y: y * 0.5, duration: 0.7, ease: 'power2.out' });
+  }
+  // 脉冲光晕跟随鼠标微弱偏移
+  if (pulseGlowRef.value) {
+    gsap.to(pulseGlowRef.value, { x: x * 0.15, y: y * 0.15, duration: 1.5, ease: 'power1.out' });
+  }
 };
 
-// ====== 网格呼吸 ======
-const animateGridBreathing = () => {
-  gsap.to('.grid-line', {
-    opacity: 0.15,
-    duration: 3,
-    ease: 'sine.inOut',
-    stagger: { each: 0.3, repeat: -1, yoyo: true },
-  });
-};
-
-// ====== 入场动画 ======
+// ==================== 入场动画 ====================
 const animateEntrance = () => {
   nextTick(() => {
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    // 脉冲光晕入场
+    gsap.fromTo(pulseGlowRef.value, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 1.2, ease: 'power3.out' });
+
+    // 脉冲呼吸
+    glowTimeline = gsap.timeline({ repeat: -1, yoyo: true });
+    glowTimeline.to(pulseGlowRef.value, { scale: 1.1, opacity: 0.8, duration: 3, ease: 'sine.inOut' });
+    glowTimeline.to(pulseGlowRef.value, { scale: 1, opacity: 1, duration: 3, ease: 'sine.inOut' }, '+=0.5');
+
+    // 卡片入场
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.3 });
     tl.from(logoRef.value, { scale: 0, rotation: -180, duration: 0.8, ease: 'back.out(1.7)' });
-    tl.from(titleCharRefs.value, { y: 30, opacity: 0, duration: 0.4, stagger: 0.04, ease: 'back.out(1.2)' }, '-=0.5');
-    tl.from(subtitleRef.value, { y: 10, opacity: 0, duration: 0.5 }, '-=0.2');
+    tl.from(titleCharRefs.value, { y: 30, opacity: 0, duration: 0.35, stagger: 0.04, ease: 'back.out(1.2)' }, '-=0.4');
+    tl.from(subtitleRef.value, { y: 10, opacity: 0, duration: 0.4 }, '-=0.2');
     const inputs = document.querySelectorAll('.login-form .form-item');
-    tl.from(inputs, { y: 40, opacity: 0, duration: 0.6, stagger: 0.1, ease: 'power3.out' }, '-=0.1');
-    tl.from(btnRef.value?.$el || btnRef.value, { y: 30, opacity: 0, scale: 0.8, duration: 0.6, ease: 'back.out(1.7)' }, '-=0.2');
-    tl.from(tipsRef.value, { y: 20, opacity: 0, duration: 0.5 }, '-=0.1');
+    tl.from(inputs, { y: 40, opacity: 0, duration: 0.5, stagger: 0.1 }, '-=0.1');
+    tl.from(btnRef.value?.$el || btnRef.value, { y: 30, opacity: 0, scale: 0.8, duration: 0.5, ease: 'back.out(1.7)' }, '-=0.15');
+    tl.from(tipsRef.value, { y: 20, opacity: 0, duration: 0.4 }, '-=0.1');
   });
 };
 
-// ====== 焦点发光 ======
+// ==================== 输入框焦点 ====================
 const onInputFocus = (e) => {
   const wrapper = e.target?.closest('.el-input__wrapper');
-  if (wrapper) gsap.to(wrapper, { boxShadow: '0 0 0 2px rgba(64,158,255,0.5), 0 0 24px rgba(64,158,255,0.2)', borderColor: '#409EFF', duration: 0.3, ease: 'power2.out' });
+  if (wrapper) gsap.to(wrapper, { boxShadow: '0 0 0 2px rgba(0,200,255,0.5), 0 0 30px rgba(0,200,255,0.25)', borderColor: '#00C8FF', duration: 0.3, ease: 'power2.out' });
 };
 const onInputBlur = (e) => {
   const wrapper = e.target?.closest('.el-input__wrapper');
-  if (wrapper) gsap.to(wrapper, { boxShadow: '0 0 0 0 rgba(64,158,255,0)', borderColor: 'rgba(99,102,241,0.15)', duration: 0.3, ease: 'power2.out' });
+  if (wrapper) gsap.to(wrapper, { boxShadow: '0 0 0 0 rgba(0,200,255,0)', borderColor: 'rgba(99,102,241,0.15)', duration: 0.3, ease: 'power2.out' });
 };
 
-// ====== 鼠标视差 ======
-const handleMouseMove = (e) => {
-  mouseX = e.clientX; mouseY = e.clientY;
-  const x = (e.clientX / window.innerWidth - 0.5) * 20;
-  const y = (e.clientY / window.innerHeight - 0.5) * 20;
-
-  // 卡片视差
-  gsap.to(cardRef.value, { x: -x * 0.3, y: -y * 0.3, duration: 0.8, ease: 'power2.out' });
-  // Logo 视差
-  gsap.to(logoRef.value, { x: x * 0.7, y: y * 0.7, rotation: x * 0.1, duration: 0.6, ease: 'power2.out' });
-  // 背景层整体视差
-  gsap.to(bgLayerRef.value, { x: x * 0.15, y: y * 0.15, duration: 1.2, ease: 'power1.out' });
-  // 四角装饰视差
-  gsap.to(decoTLRef.value, { x: x * 0.5, y: y * 0.5, duration: 0.8, ease: 'power2.out' });
-  gsap.to(decoTRRef.value, { x: -x * 0.5, y: y * 0.5, duration: 0.8, ease: 'power2.out' });
-  gsap.to(decoBLRef.value, { x: x * 0.5, y: -y * 0.5, duration: 0.8, ease: 'power2.out' });
-  gsap.to(decoBRRef.value, { x: -x * 0.5, y: -y * 0.5, duration: 0.8, ease: 'power2.out' });
-};
-
-// ====== 登录逻辑 ======
+// ==================== 登录逻辑 ====================
 const handleLogin = async () => {
   const valid = await formRef.value.validate().catch(() => false);
   if (!valid) return;
@@ -219,97 +410,94 @@ const handleLogin = async () => {
   try {
     const success = await userStore.login(form.value.username, form.value.password);
     if (success) {
-      gsap.to(cardRef.value, { scale: 0.9, opacity: 0, duration: 0.4, ease: 'power3.in' });
+      gsap.to(cardRef.value, { scale: 0.88, opacity: 0, rotationY: 10, duration: 0.5, ease: 'power3.in' });
       ElMessage.success('登录成功，欢迎回来！');
       router.push('/dashboard');
     } else {
-      gsap.to(cardRef.value, { x: [0,-10,10,-10,10,0], duration: 0.5, ease: 'power2.out' });
+      gsap.to(cardRef.value, { keyframes: [{ x: -8 }, { x: 8 }, { x: -6 }, { x: 6 }, { x: -3 }, { x: 3 }, { x: 0 }], duration: 0.45, ease: 'power2.out' });
       ElMessage.error('用户名或密码错误');
     }
   } catch (e) {
-    gsap.to(cardRef.value, { x: [0,-10,10,-10,10,0], duration: 0.5, ease: 'power2.out' });
+    gsap.to(cardRef.value, { keyframes: [{ x: -8 }, { x: 8 }, { x: -6 }, { x: 6 }, { x: -3 }, { x: 3 }, { x: 0 }], duration: 0.45, ease: 'power2.out' });
     ElMessage.error('登录失败，请稍后重试');
   } finally { loading.value = false; }
 };
 
+// ==================== 生命周期 ====================
+let gsapCtx = null;
+
 onMounted(() => {
-  ctx = gsap.context(() => {
-    initParticles();
-    animateGlowBreathing();
-    animateGridBreathing();
+  gsapCtx = gsap.context(() => {
+    initCanvas();
     animateEntrance();
   }, pageRef.value);
   window.addEventListener('mousemove', handleMouseMove);
 });
 
 onUnmounted(() => {
-  ctx?.revert();
-  if (particleRAF) cancelAnimationFrame(particleRAF);
-  glowTween?.kill();
+  gsapCtx?.revert();
+  if (canvasRAF) cancelAnimationFrame(canvasRAF);
+  if (glowTimeline) glowTimeline.kill();
   window.removeEventListener('mousemove', handleMouseMove);
 });
 </script>
 
 <style scoped>
-.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0C1322 0%, #15223B 30%, #1E3050 60%, #203D6E 100%); position: relative; overflow: hidden; }
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
 
-/* ====== 背景层 ====== */
-.bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+/* Canvas 背景 */
+.bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 
-/* 渐变光晕 */
-.bg-glow { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; }
-.glow-1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(64,158,255,0.25) 0%, transparent 70%); top: -15%; left: -10%; }
-.glow-2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(59,75,255,0.2) 0%, transparent 70%); bottom: -10%; right: -8%; }
-.glow-3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); top: 40%; left: 55%; }
+/* 脉冲光晕（卡片后方） */
+.pulse-glow { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(64,158,255,0.15) 0%, rgba(64,158,255,0.05) 30%, rgba(0,240,255,0.02) 60%, transparent 100%);
+  z-index: 1; pointer-events: none; }
 
-/* 几何网格 */
-.geometric-grid { position: absolute; inset: 0; transform: perspective(800px) rotateX(60deg) scale(2.2); }
-.grid-line { position: absolute; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 5%, rgba(100,140,200,0.12) 20%, rgba(64,158,255,0.08) 50%, rgba(100,140,200,0.12) 80%, transparent 95%); }
-.grid-line.vertical { top: 0; bottom: 0; width: 1px; height: auto; background: linear-gradient(180deg, transparent 5%, rgba(100,140,200,0.12) 20%, rgba(64,158,255,0.08) 50%, rgba(100,140,200,0.12) 80%, transparent 95%); }
+/* 登录卡片 */
+.login-container { position: relative; z-index: 2; width: 100%; max-width: 460px; padding: 20px; perspective: 1000px; }
+.login-card { background: rgba(20,30,52,0.78); backdrop-filter: blur(28px) saturate(200%); -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(0,200,255,0.18); border-radius: 24px; padding: 48px 40px;
+  box-shadow: 0 0 80px rgba(0,150,255,0.12), 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+  position: relative; overflow: hidden; transform-style: preserve-3d; }
+.login-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle at 30% 20%, rgba(0,200,255,0.06) 0%, transparent 60%); pointer-events: none; }
+.login-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,200,255,0.3), rgba(64,158,255,0.4), rgba(0,200,255,0.3), transparent); }
 
-/* 装饰图标 */
-.corner-deco { position: absolute; color: rgba(100,140,200,0.5); filter: drop-shadow(0 0 12px rgba(64,158,255,0.3)); }
-.corner-deco svg { width: 100%; height: 100%; }
-.deco-tl { top: 40px; left: 60px; width: 70px; height: 70px; }
-.deco-tr { top: 50px; right: 80px; width: 56px; height: 74px; }
-.deco-bl { bottom: 60px; left: 80px; width: 64px; height: 64px; }
-.deco-br { bottom: 50px; right: 60px; width: 64px; height: 56px; }
-
-/* 粒子画布 */
-.particle-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
-
-/* ====== 登录卡片（不变） ====== */
-.login-container { position: relative; z-index: 10; width: 100%; max-width: 460px; padding: 20px; }
-.login-card { background: rgba(30,41,59,0.75); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(99,102,241,0.15); border-radius: 24px; padding: 48px 40px; box-shadow: 0 25px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); position: relative; overflow: hidden; }
-.login-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 30% 20%, rgba(99,102,241,0.08) 0%, transparent 50%); pointer-events: none; }
 .login-header { text-align: center; margin-bottom: 40px; }
-.logo-icon { width: 64px; height: 64px; margin: 0 auto 20px; background: linear-gradient(135deg, #3B4BFF 0%, #818CF8 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(59,75,255,0.35); position: relative; }
-.logo-icon::after { content: ''; position: absolute; inset: -2px; border-radius: 18px; background: linear-gradient(135deg, rgba(99,102,241,0.5), rgba(129,140,248,0.2)); z-index: -1; }
+.logo-icon { width: 64px; height: 64px; margin: 0 auto 20px;
+  background: linear-gradient(135deg, #409EFF 0%, #00C8FF 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 40px rgba(0,200,255,0.4), 0 8px 24px rgba(0,150,255,0.3); position: relative; }
+.logo-icon::after { content: ''; position: absolute; inset: -2px; border-radius: 18px;
+  background: linear-gradient(135deg, rgba(0,200,255,0.5), rgba(64,158,255,0.3)); z-index: -1; }
 .logo-icon svg { width: 36px; height: 36px; color: #fff; }
-.login-title { font-size: 24px; font-weight: 700; color: #F1F5F9; margin-bottom: 8px; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.login-title { font-size: 24px; font-weight: 700; color: #EDF2F7; margin-bottom: 8px; letter-spacing: 2px; }
 .title-char { display: inline-block; }
-.login-subtitle { font-size: 12px; color: #94A3B8; letter-spacing: 2px; }
+.login-subtitle { font-size: 12px; color: #88A4C8; letter-spacing: 2px; }
 .login-form { margin-bottom: 32px; }
 .form-item { margin-bottom: 24px; }
 .form-item:last-child { margin-bottom: 0; margin-top: 32px; }
-.form-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 500; color: #CBD5E1; }
-.form-label .el-icon { color: #818CF8; }
-.login-btn { width: 100%; height: 52px; font-size: 16px; font-weight: 600; border-radius: 14px!important; background: linear-gradient(135deg, #3B4BFF 0%, #6366F1 100%)!important; border: none!important; box-shadow: 0 4px 24px rgba(59,75,255,0.45); letter-spacing: 4px; }
-.login-tips { background: rgba(15,23,42,0.5); border-radius: 16px; padding: 20px; border: 1px solid rgba(99,102,241,0.1); }
-.tips-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #94A3B8; margin-bottom: 16px; }
-.tips-header .el-icon { color: #818CF8; }
+.form-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 500; color: #B0C4DE; }
+.form-label .el-icon { color: #5EA8E8; }
+.login-btn { width: 100%; height: 52px; font-size: 16px; font-weight: 600; border-radius: 14px!important;
+  background: linear-gradient(135deg, #409EFF 0%, #00C8FF 100%)!important; border: none!important;
+  box-shadow: 0 0 30px rgba(0,200,255,0.4), 0 4px 16px rgba(0,100,200,0.3); letter-spacing: 4px; }
+.login-tips { background: rgba(15,23,42,0.5); border-radius: 16px; padding: 20px; border: 1px solid rgba(0,200,255,0.1); }
+.tips-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #88A4C8; margin-bottom: 16px; }
+.tips-header .el-icon { color: #5EA8E8; }
 .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.tip-item { display: flex; flex-direction: column; gap: 4px; padding: 12px; background: rgba(30,41,59,0.6); border-radius: 10px; border: 1px solid rgba(99,102,241,0.08); }
+.tip-item { display: flex; flex-direction: column; gap: 4px; padding: 12px; background: rgba(20,30,52,0.6); border-radius: 10px; border: 1px solid rgba(0,200,255,0.08); }
 .tip-role { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; width: fit-content; }
-.tip-role.admin { background: rgba(59,75,255,0.2); color: #818CF8; }
+.tip-role.admin { background: rgba(64,158,255,0.2); color: #5EA8E8; }
 .tip-role.teacher { background: rgba(16,185,129,0.2); color: #34D399; }
-.tip-creds { font-size: 12px; color: #94A3B8; font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace; }
+.tip-creds { font-size: 12px; color: #88A4C8; font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace; }
 .login-footer { text-align: center; margin-top: 32px; }
-.login-footer p { font-size: 12px; color: rgba(148,163,184,0.6); }
+.login-footer p { font-size: 12px; color: rgba(136,164,200,0.5); }
 
-::deep(.el-input__wrapper) { background: rgba(15,23,42,0.6)!important; border: 1px solid rgba(99,102,241,0.15)!important; border-radius: 12px!important; box-shadow: none!important; }
-::deep(.el-input__inner) { color: #F1F5F9!important; }
-::deep(.el-input__inner::placeholder) { color: #64748B!important; }
-::deep(.el-input__prefix) { color: #818CF8!important; }
-::deep(.el-form-item__error) { color: #F87171; }
+/* Element Plus 输入框覆盖 */
+:deep(.el-input__wrapper) { background: rgba(10,20,40,0.65)!important; border: 1px solid rgba(0,200,255,0.12)!important; border-radius: 12px!important; box-shadow: none!important; }
+:deep(.el-input__inner) { color: #E2E8F0!important; }
+:deep(.el-input__inner::placeholder) { color: #5A6E88!important; }
+:deep(.el-input__prefix) { color: #5EA8E8!important; }
+:deep(.el-form-item__error) { color: #F87171; }
 </style>
