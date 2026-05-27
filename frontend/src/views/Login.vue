@@ -33,8 +33,9 @@
             <el-input v-model="form.password" type="password" placeholder="请输入密码" size="large" show-password :prefix-icon="Lock" @keyup.enter="handleLogin" @focus="onInputFocus" @blur="onInputBlur" />
           </el-form-item>
           <el-form-item class="form-item">
-            <el-button type="primary" size="large" :loading="loading" class="login-btn" ref="btnRef" @click="handleLogin">
-              <span v-if="!loading">登 录</span><span v-else>登录中...</span>
+            <el-button type="primary" size="large" :loading="loading" class="login-btn" ref="btnRef" @click="handleLogin" style="color:#FFFFFF!important">
+              <span v-if="!loading" style="color:#FFFFFF!important;font-weight:700">登 录</span>
+              <span v-else style="color:#FFFFFF!important;font-weight:700">登录中...</span>
             </el-button>
           </el-form-item>
         </el-form>
@@ -479,13 +480,17 @@ onUnmounted(() => {
 .form-item:last-child { margin-bottom: 0; margin-top: 32px; }
 .form-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 500; color: #B0C4DE; }
 .form-label .el-icon { color: #5EA8E8; }
-.login-btn { width: 100%; height: 52px; font-size: 17px; font-weight: 700; border-radius: 14px!important;
-  background: linear-gradient(135deg, #409EFF 0%, #00C8FF 100%)!important; border: none!important;
-  box-shadow: 0 0 40px rgba(0,200,255,0.5), 0 4px 20px rgba(0,100,200,0.35); letter-spacing: 6px;
+.login-btn { width: 100% !important; height: 52px !important; font-size: 17px !important; font-weight: 700 !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, #409EFF 0%, #00C8FF 100%) !important; border: none !important;
+  box-shadow: 0 0 40px rgba(0,200,255,0.5), 0 4px 20px rgba(0,100,200,0.35) !important; letter-spacing: 6px;
   position: relative; z-index: 5;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  color: #FFFFFF !important; }
-.login-btn :deep(span) { color: #FFFFFF !important; font-weight: 700; }
+  color: #FFFFFF !important;
+  --el-button-text-color: #FFFFFF;
+  --el-button-hover-text-color: #FFFFFF;
+  --el-button-active-text-color: #FFFFFF; }
+.login-btn :deep(*) { color: #FFFFFF !important; }
+.login-btn :deep(.el-button__text) { color: #FFFFFF !important; font-weight: 700 !important; }
 .login-tips { background: rgba(15,23,42,0.5); border-radius: 16px; padding: 20px; border: 1px solid rgba(0,200,255,0.1); }
 .tips-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #88A4C8; margin-bottom: 16px; }
 .tips-header .el-icon { color: #5EA8E8; }
