@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <el-form ref="formRef" :model="form" :rules="rules" class="evaluation-form" ref="formElRef">
+      <el-form ref="formRef" :model="form" :rules="rules" class="evaluation-form">
         <div class="dimensions-section">
           <div class="section-header"><h2 class="section-title"><el-icon><Star /></el-icon>评价维度</h2><span class="section-tip">为每个维度打分（1-5星）</span></div>
           <div class="dimensions-grid" ref="dimsRef">
