@@ -449,8 +449,8 @@ onUnmounted(() => {
 .bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 
 /* 脉冲光晕（卡片后方） */
-.pulse-glow { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 500px; height: 500px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(64,158,255,0.15) 0%, rgba(64,158,255,0.05) 30%, rgba(0,240,255,0.02) 60%, transparent 100%);
+.pulse-glow { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 350px; height: 350px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(64,158,255,0.1) 0%, rgba(64,158,255,0.03) 40%, transparent 100%);
   z-index: 1; pointer-events: none; }
 
 /* 登录卡片 */
@@ -479,9 +479,13 @@ onUnmounted(() => {
 .form-item:last-child { margin-bottom: 0; margin-top: 32px; }
 .form-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 500; color: #B0C4DE; }
 .form-label .el-icon { color: #5EA8E8; }
-.login-btn { width: 100%; height: 52px; font-size: 16px; font-weight: 600; border-radius: 14px!important;
+.login-btn { width: 100%; height: 52px; font-size: 17px; font-weight: 700; border-radius: 14px!important;
   background: linear-gradient(135deg, #409EFF 0%, #00C8FF 100%)!important; border: none!important;
-  box-shadow: 0 0 30px rgba(0,200,255,0.4), 0 4px 16px rgba(0,100,200,0.3); letter-spacing: 4px; }
+  box-shadow: 0 0 40px rgba(0,200,255,0.5), 0 4px 20px rgba(0,100,200,0.35); letter-spacing: 6px;
+  position: relative; z-index: 5;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  color: #FFFFFF !important; }
+.login-btn :deep(span) { color: #FFFFFF !important; font-weight: 700; }
 .login-tips { background: rgba(15,23,42,0.5); border-radius: 16px; padding: 20px; border: 1px solid rgba(0,200,255,0.1); }
 .tips-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #88A4C8; margin-bottom: 16px; }
 .tips-header .el-icon { color: #5EA8E8; }
