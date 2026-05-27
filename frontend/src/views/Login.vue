@@ -32,12 +32,18 @@
             <label class="form-label"><el-icon><Lock /></el-icon><span>密码</span></label>
             <el-input v-model="form.password" type="password" placeholder="请输入密码" size="large" show-password :prefix-icon="Lock" @keyup.enter="handleLogin" @focus="onInputFocus" @blur="onInputBlur" />
           </el-form-item>
-          <el-form-item class="form-item">
-            <el-button type="primary" size="large" :loading="loading" class="login-btn" ref="btnRef" @click="handleLogin" style="color:#FFFFFF!important">
-              <span v-if="!loading" style="color:#FFFFFF!important;font-weight:700">登 录</span>
-              <span v-else style="color:#FFFFFF!important;font-weight:700">登录中...</span>
-            </el-button>
-          </el-form-item>
+          <!-- 登录按钮 - 完全脱离 el-form-item 限制 + 纯自控样式 -->
+          <button
+            ref="btnRef"
+            class="login-btn"
+            :disabled="loading"
+            @click.prevent="handleLogin"
+          >
+            <span v-if="!loading">登 录</span>
+            <span v-else class="loading-text">
+              <span class="dot-pulse"></span> 登录中...
+            </span>
+          </button>
         </el-form>
 
         <div class="login-tips" ref="tipsRef">
@@ -388,7 +394,7 @@ const animateEntrance = () => {
     tl.from(subtitleRef.value, { y: 10, opacity: 0, duration: 0.4 }, '-=0.2');
     const inputs = document.querySelectorAll('.login-form .form-item');
     tl.from(inputs, { y: 40, opacity: 0, duration: 0.5, stagger: 0.1 }, '-=0.1');
-    tl.from(btnRef.value?.$el || btnRef.value, { y: 30, opacity: 0, scale: 0.8, duration: 0.5, ease: 'back.out(1.7)' }, '-=0.15');
+    tl.from(btnRef.value, { y: 30, opacity: 0, scale: 0.8, duration: 0.5, ease: 'back.out(1.7)' }, '-=0.15');
     tl.from(tipsRef.value, { y: 20, opacity: 0, duration: 0.4 }, '-=0.1');
   });
 };
@@ -459,7 +465,7 @@ onUnmounted(() => {
 .login-card { background: rgba(20,30,52,0.78); backdrop-filter: blur(28px) saturate(200%); -webkit-backdrop-filter: blur(28px) saturate(200%);
   border: 1px solid rgba(0,200,255,0.18); border-radius: 24px; padding: 48px 40px;
   box-shadow: 0 0 80px rgba(0,150,255,0.12), 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
-  position: relative; overflow: hidden; transform-style: preserve-3d; }
+  position: relative; transform-style: preserve-3d; }
 .login-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
   background: radial-gradient(circle at 30% 20%, rgba(0,200,255,0.06) 0%, transparent 60%); pointer-events: none; }
 .login-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
@@ -480,17 +486,27 @@ onUnmounted(() => {
 .form-item:last-child { margin-bottom: 0; margin-top: 32px; }
 .form-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 500; color: #B0C4DE; }
 .form-label .el-icon { color: #5EA8E8; }
-.login-btn { width: 100% !important; height: 52px !important; font-size: 17px !important; font-weight: 700 !important;
-  border-radius: 14px !important;
-  background: linear-gradient(135deg, #409EFF 0%, #00C8FF 100%) !important; border: none !important;
-  box-shadow: 0 0 40px rgba(0,200,255,0.5), 0 4px 20px rgba(0,100,200,0.35) !important; letter-spacing: 6px;
-  position: relative; z-index: 5;
-  color: #FFFFFF !important;
-  --el-button-text-color: #FFFFFF;
-  --el-button-hover-text-color: #FFFFFF;
-  --el-button-active-text-color: #FFFFFF; }
-.login-btn :deep(*) { color: #FFFFFF !important; }
-.login-btn :deep(.el-button__text) { color: #FFFFFF !important; font-weight: 700 !important; }
+/* ── 登录按钮 —— 纯原生 <button>，不依赖 Element Plus ── */
+.login-btn { display: block; width: 100%; height: 52px; margin-top: 32px; padding: 0;
+  font-size: 17px; font-weight: 700; letter-spacing: 8px;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #409EFF 0%, #00C8FF 100%);
+  border: 1px solid rgba(0,200,255,0.35);
+  border-radius: 14px;
+  box-shadow: 0 0 50px rgba(0,200,255,0.45), 0 0 120px rgba(0,150,255,0.15), 0 4px 24px rgba(0,0,0,0.4);
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative; z-index: 10; }
+.login-btn:not(:disabled):hover { transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 70px rgba(0,200,255,0.65), 0 0 160px rgba(0,150,255,0.25), 0 8px 32px rgba(0,0,0,0.5); }
+.login-btn:not(:disabled):active { transform: translateY(1px) scale(0.98); }
+.login-btn:disabled { opacity: 0.7; cursor: wait; }
+.login-btn span { color: #FFFFFF !important; font-weight: 700; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
+.loading-text { display: inline-flex; align-items: center; gap: 8px; }
+.dot-pulse { width: 8px; height: 8px; border-radius: 50%; background: #FFFFFF;
+  animation: dotPulse 0.8s ease-in-out infinite alternate; }
+@keyframes dotPulse { from { opacity: 0.3; transform: scale(0.7); } to { opacity: 1; transform: scale(1.1); } }
 .login-tips { background: rgba(15,23,42,0.5); border-radius: 16px; padding: 20px; border: 1px solid rgba(0,200,255,0.1); }
 .tips-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #88A4C8; margin-bottom: 16px; }
 .tips-header .el-icon { color: #5EA8E8; }
